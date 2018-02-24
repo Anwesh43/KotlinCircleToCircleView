@@ -66,4 +66,28 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             }
         }
     }
+    data class CircleToCircle(var x : Float, var y : Float, var size : Float, var dir : Float = 0f) {
+        val state = State()
+        fun draw(canvas : Canvas, paint : Paint) {
+            canvas.save()
+            canvas.translate(x, y)
+            paint.style = Paint.Style.FILL
+            paint.color = Color.parseColor("#f44336")
+            paint.strokeWidth = size/25
+            canvas.drawCircle(this.dir * size * (state.scales[0] + state.scales[1]), 0f, size/10, paint)
+            paint.style = Paint.Style.STROKE
+            canvas.drawArc(RectF( -size/2, -size/2, size/2, size/2), 90 * (1 - dir), 360f * state.scales[0], false, paint)
+            canvas.save()
+            canvas.translate( 2 * size * this.dir, 0f)
+            canvas.drawArc(RectF(-size/2, -size/2, size/2, size/2), 90 * (1 + dir), 360f * state.scales[1], false, paint)
+            canvas.restore()
+            canvas.restore()
+        }
+        fun update(stopcb : () -> Unit) {
+            state.update(stopcb)
+        }
+        fun startUpdating(startcb : () -> Unit) {
+            state.startUpdating(startcb)
+        }
+    }
 }
