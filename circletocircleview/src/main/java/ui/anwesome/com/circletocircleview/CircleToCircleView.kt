@@ -3,6 +3,7 @@ package ui.anwesome.com.circletocircleview
 /**
  * Created by anweshmishra on 25/02/18.
  */
+import android.app.Activity
 import android.view.*
 import android.content.*
 import android.graphics.*
@@ -119,6 +120,12 @@ class CircleToCircleView(ctx:Context):View(ctx) {
                     animator.start()
                 }
             }
+        }
+    }
+    companion object {
+        fun create(activity : Activity) {
+            val view = CircleToCircleView(activity)
+            activity.setContentView(view)
         }
     }
 }
