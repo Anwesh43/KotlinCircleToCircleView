@@ -74,7 +74,7 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             paint.style = Paint.Style.FILL
             paint.color = Color.parseColor("#f44336")
             paint.strokeWidth = size/25
-            canvas.drawCircle(this.dir * size * (state.scales[0] + state.scales[1]), 0f, size/10, paint)
+            canvas.drawCircle(this.dir * size * (state.scales[0] + state.scales[1]), 0f, size/4, paint)
             paint.style = Paint.Style.STROKE
             canvas.drawArc(RectF( -size/2, -size/2, size/2, size/2), 90 * (1 - dir), 360f * state.scales[0], false, paint)
             canvas.save()
@@ -86,8 +86,38 @@ class CircleToCircleView(ctx:Context):View(ctx) {
         fun update(stopcb : () -> Unit) {
             state.update(stopcb)
         }
-        fun startUpdating(startcb : () -> Unit) {
-            state.startUpdating(startcb)
+        fun startUpdating(dir : Float, startcb : () -> Unit) {
+            if(this.dir == 0f) {
+                this.dir = dir
+                state.startUpdating(startcb)
+            }
+        }
+    }
+    data class Renderer(var view : CircleToCircleView, var time : Int = 0) {
+        val animator = Animator(view)
+        var circleToCircle : CircleToCircle ?= null
+        fun render(canvas : Canvas, paint : Paint) {
+            if(time == 0) {
+                val w = canvas.width.toFloat()
+                val h = canvas.height.toFloat()
+                circleToCircle = CircleToCircle(w/2, h/2, Math.min(w, h)/ 5)
+            }
+            canvas.drawColor(Color.parseColor("#212121"))
+            circleToCircle?.draw(canvas, paint)
+            time++
+            animator.animate {
+                circleToCircle?.update {
+                    animator.stop()
+                }
+            }
+        }
+        fun handleTap(x : Float) {
+            val diff = x - (circleToCircle?.x?:0f)
+            if(diff != 0f) {
+                circleToCircle?.startUpdating(diff/Math.abs(diff)){
+                    animator.start()
+                }
+            }
         }
     }
 }
