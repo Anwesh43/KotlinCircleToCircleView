@@ -78,15 +78,19 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             paint.strokeWidth = size/25
             canvas.drawCircle(this.dir * size * (state.scales[0] + state.scales[1]), 0f, size/4, paint)
             paint.style = Paint.Style.STROKE
-            canvas.drawArc(RectF( -size/2, -size/2, size/2, size/2), 90 * (1 - dir), 360f * state.scales[0], false, paint)
+            canvas.drawArc(RectF( -size/2, -size/2, size/2, size/2), 90 * (1 - dir), 360f * (1 - state.scales[0]), false, paint)
             canvas.save()
-            canvas.translate( 2 * size * this.dir, 0f)
+            canvas.translate(  size * this.dir, 0f)
             canvas.drawArc(RectF(-size/2, -size/2, size/2, size/2), 90 * (1 + dir), 360f * state.scales[1], false, paint)
             canvas.restore()
             canvas.restore()
         }
         fun update(stopcb : () -> Unit) {
-            state.update(stopcb)
+            state.update({
+                this.x += this.dir * size
+                this.dir = 0f
+                stopcb()
+            })
         }
         fun startUpdating(dir : Float, startcb : () -> Unit) {
             if(this.dir == 0f) {
