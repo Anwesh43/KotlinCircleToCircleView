@@ -11,6 +11,10 @@ import android.graphics.*
 class CircleToCircleView(ctx:Context):View(ctx) {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     val renderer = Renderer(this)
+    var circleToCircleListener : CircleToCircleListener ?= null
+    fun addCircleToCircleListener(onLeftMoveListener : () -> Unit, onRightMoveListener : () -> Unit, onCantMoveLeftListener: () -> Unit, onCantMoveRightListener : () -> Unit) {
+        circleToCircleListener = CircleToCircleListener(onLeftMoveListener, onRightMoveListener, onCantMoveLeftListener, onCantMoveRightListener)
+    }
     override fun onDraw(canvas:Canvas) {
         renderer.render(canvas, paint)
     }
@@ -86,11 +90,11 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             canvas.restore()
             canvas.restore()
         }
-        fun update(stopcb : () -> Unit) {
+        fun update(stopcb : (Float) -> Unit) {
             state.update({
                 this.x += this.dir * size
+                stopcb(this.dir)
                 this.dir = 0f
-                stopcb()
             })
         }
         fun startUpdating(dir : Float, startcb : () -> Unit) {
@@ -126,6 +130,10 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             animator.animate {
                 circleToCircle?.update {
                     animator.stop()
+                    when(it) { 
+                        1f -> view.circleToCircleListener?.onRightMoveListener?.invoke()
+                        -1f -> view.circleToCircleListener?.onLeftMoveListener?.invoke()
+                    }
                 }
             }
         }
@@ -137,6 +145,12 @@ class CircleToCircleView(ctx:Context):View(ctx) {
                     animator.start()
                 }
             }
+            else if(diff != 0f) {
+                when(diff/Math.abs(diff)) {
+                    1f -> view.circleToCircleListener?.onCantMoveRightListener?.invoke()
+                    -1f -> view.circleToCircleListener?.onCantMoveLeftListener?.invoke()
+                }
+            }
         }
     }
     companion object {
@@ -146,4 +160,5 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             activity.setContentView(view)
         }
     }
+    data class CircleToCircleListener(val onLeftMoveListener : () -> Unit, val onRightMoveListener : () -> Unit, val onCantMoveLeftListener: () -> Unit, val onCantMoveRightListener : () -> Unit)
 }
