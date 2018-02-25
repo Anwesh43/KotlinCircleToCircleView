@@ -6,6 +6,7 @@ package ui.anwesome.com.circletocircleview
 import android.app.Activity
 import android.view.*
 import android.content.*
+import android.content.pm.ActivityInfo
 import android.graphics.*
 class CircleToCircleView(ctx:Context):View(ctx) {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -68,7 +69,7 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             }
         }
     }
-    data class CircleToCircle(var x : Float, var y : Float, var size : Float, var dir : Float = 0f) {
+    data class CircleToCircle(var x : Float, var y : Float, var size : Float, var w:Float, var dir : Float = 0f) {
         val state = State()
         fun draw(canvas : Canvas, paint : Paint) {
             canvas.save()
@@ -76,7 +77,7 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             paint.style = Paint.Style.FILL
             paint.color = Color.parseColor("#f44336")
             paint.strokeWidth = size/25
-            canvas.drawCircle(this.dir * size * (state.scales[0] + state.scales[1]), 0f, size/4, paint)
+            canvas.drawCircle(this.dir * (size / 2) * (state.scales[0] + state.scales[1]), 0f, size/4, paint)
             paint.style = Paint.Style.STROKE
             canvas.drawArc(RectF( -size/2, -size/2, size/2, size/2), 90 * (1 - dir), 360f * (1 - state.scales[0]), false, paint)
             canvas.save()
@@ -98,6 +99,17 @@ class CircleToCircleView(ctx:Context):View(ctx) {
                 state.startUpdating(startcb)
             }
         }
+        fun insideBound(dir : Float):Boolean {
+            when(dir) {
+                1f -> {
+                    return x <= w - 3 * size / 2
+                }
+                -1f -> {
+                    return x >= 3 * size / 2
+                }
+            }
+            return false
+        }
     }
     data class Renderer(var view : CircleToCircleView, var time : Int = 0) {
         val animator = Animator(view)
@@ -106,7 +118,7 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             if(time == 0) {
                 val w = canvas.width.toFloat()
                 val h = canvas.height.toFloat()
-                circleToCircle = CircleToCircle(w/2, h/2, Math.min(w, h)/ 5)
+                circleToCircle = CircleToCircle(w/2, h/2, Math.min(w, h)/ 5, w)
             }
             canvas.drawColor(Color.parseColor("#212121"))
             circleToCircle?.draw(canvas, paint)
@@ -118,8 +130,9 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             }
         }
         fun handleTap(x : Float) {
-            val diff = x - (circleToCircle?.x?:0f)
-            if(diff != 0f) {
+            val circleX = circleToCircle?.x?:0f
+            val diff = Math.floor((x - circleX).toDouble()).toFloat()
+            if(diff != 0f && circleToCircle?.insideBound((diff)/Math.abs(diff))?:false) {
                 circleToCircle?.startUpdating(diff/Math.abs(diff)){
                     animator.start()
                 }
@@ -128,6 +141,7 @@ class CircleToCircleView(ctx:Context):View(ctx) {
     }
     companion object {
         fun create(activity : Activity) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             val view = CircleToCircleView(activity)
             activity.setContentView(view)
         }
