@@ -130,7 +130,7 @@ class CircleToCircleView(ctx:Context):View(ctx) {
             animator.animate {
                 circleToCircle?.update {
                     animator.stop()
-                    when(it) { 
+                    when(it) {
                         1f -> view.circleToCircleListener?.onRightMoveListener?.invoke()
                         -1f -> view.circleToCircleListener?.onLeftMoveListener?.invoke()
                     }
@@ -154,10 +154,11 @@ class CircleToCircleView(ctx:Context):View(ctx) {
         }
     }
     companion object {
-        fun create(activity : Activity) {
+        fun create(activity : Activity):CircleToCircleView {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             val view = CircleToCircleView(activity)
             activity.setContentView(view)
+            return view
         }
     }
     data class CircleToCircleListener(val onLeftMoveListener : () -> Unit, val onRightMoveListener : () -> Unit, val onCantMoveLeftListener: () -> Unit, val onCantMoveRightListener : () -> Unit)
